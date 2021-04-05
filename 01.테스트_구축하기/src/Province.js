@@ -1,3 +1,5 @@
+import Producer from './Producer.js'
+
 class Province {
   #name
   #producers
