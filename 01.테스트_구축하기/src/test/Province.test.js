@@ -14,4 +14,10 @@ describe('Province 테스트', () => {
   it('profit', () => {
     expect(korea.profit).toBe(230) // 검증
   })
+
+  it('change production', () => {
+    korea.producers[0].production = 20
+    expect(korea.shortfall).toBe(-6)
+    expect(korea.profit).toBe(292)
+  })
 })
