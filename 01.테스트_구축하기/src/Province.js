@@ -12,7 +12,7 @@ class Province {
     this.#producers = []
     this.#totalProduction = 0
     this.#demand = doc.demand
-    this.#price = doc.Province
+    this.#price = doc.price
     doc.producers.forEach((data) => this.addProducer(new Producer(this, data)))
   }
 
