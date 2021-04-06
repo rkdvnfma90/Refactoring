@@ -103,6 +103,9 @@ const printOwing = (invoice) => {
 }
 ```
 
+<br/>
+<br/>
+
 ```javascript
 // After
 const printOwing = (invoice) => {
@@ -140,3 +143,129 @@ const printBanner = () => {
   console.log('***********')
 }
 ```
+
+<br/>
+<br/>
+
+---
+
+<br/>
+<br/>
+
+## 지역 변수를 사용할 때
+
+지역 변수와 관련하여 가장 간단한 경우는 변수를 사용하지만 다른 값을 다시 대입하지는 않을 경우이다.
+이 경우 지역 변수들을 그냥 매개변수로 넘기면 된다.
+
+<br/>
+<br/>
+
+```javascript
+const printOwing = (invoice) => {
+  let outstanding = 0
+
+  // 배너 출력 로직을 함수로 추출
+  printBanner()
+
+  // 미해결 채무를 계산한다.
+  for (const o of invoice.order) {
+    outstanding += o
+  }
+
+  // 마감일 설정 로직을 함수로 추출
+  recordDuteDate(invoice)
+
+  // 세부사항 출력 로직을 함수로 추출
+  printDetails(invoice, outstanding)
+
+  // 이전의 예시와 다르게 지역 변수를 매개변수로 전달했다. (invoice 추가)
+  const printDetails = (invoice, outstanding) => {
+    console.log(`고객명 : ${invoice.customer}`)
+    console.log(`채무액 : ${outstanding}`)
+    console.log(`마감일 : ${invoice.dueDate.toLocaleDateString()}`)
+  }
+}
+
+const printBanner = () => {
+  console.log('***********')
+  console.log('고객 채무')
+  console.log('***********')
+}
+
+const recordDuteDate = (invoice) => {
+  const today = Clock.today
+  invoice.dueDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 30
+  )
+}
+```
+
+<br/>
+<br/>
+
+---
+
+<br/>
+<br/>
+
+## 지역 변수의 값을 변경할 때
+
+지역 변수에 값을 대입하게 되면 복잡해 진다. 만약에 매개변수에 값을 대입하는 코드를 발견한다면 곧바로 그 변수를 쪼개서 임시 변수를 새로 하나 만들어 그 변수에 대입한다. 대입 대상이 되는 임시 변수는 크게 2가지로 나눌 수 있다.
+
+1. 변수가 추출된 코드 안에서만 사용될 때 : 이 변수는 추출된 코드 안에서만 존재한다. 변수가 초기화되는 지점과 실제로 사용되는 지점이 떨어져 있다면 문장 슬라이드하기를 활용하여 변수 조작을 모두 한곳에 처리하도록 모아두면 편하다.
+
+2. 변수가 추출한 함수 밖에서 사용될 때 : 이럴 때는 변수에 대입된 새 값을 반환해야 한다.
+
+```javascript
+const printOwing = (invoice) => {
+  // 배너 출력 로직을 함수로 추출
+  printBanner()
+
+  let outstanding = calculateOutstanding(invoice)
+
+  // 마감일 설정 로직을 함수로 추출
+  recordDuteDate(invoice)
+
+  // 세부사항 출력 로직을 함수로 추출
+  printDetails(invoice, outstanding)
+
+  // 이전의 예시와 다르게 지역 변수를 매개변수로 전달했다. (invoice 추가)
+  const printDetails = (invoice, outstanding) => {
+    console.log(`고객명 : ${invoice.customer}`)
+    console.log(`채무액 : ${outstanding}`)
+    console.log(`마감일 : ${invoice.dueDate.toLocaleDateString()}`)
+  }
+}
+
+const printBanner = () => {
+  console.log('***********')
+  console.log('고객 채무')
+  console.log('***********')
+}
+
+const recordDuteDate = (invoice) => {
+  const today = Clock.today
+  invoice.dueDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 30
+  )
+}
+
+const calculateOutstanding = (invoice) => {
+  // 맨 위에 있던 선언문을 이 위치로 이동시킨다. (문장 슬라이드)
+  let outstanding = 0
+  for (const o of invoice.order) {
+    outstanding += o
+  }
+
+  // 수정된 값 반환
+  return outstanding
+}
+```
+
+1. 선언문을 변수가 사용되는 코드 근처로 슬라이드 한다.
+2. 추출할 부분을 새로운 함수로 복사한다.
+3. outstanding의 선언문을 추출할 코드 앞으로 옮겼기 때문에 매개변수로 전달하지 않아도 된다. 추출한 코드에서 값이 변경된 변수는 outstanding 뿐이다. 따라서 이 값을 반환한다.
